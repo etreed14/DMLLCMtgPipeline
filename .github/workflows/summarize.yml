@@ -23,6 +23,8 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python pipeline/run_pipeline.py
         continue-on-error: true
+      - name: Ensure summaries folder exists
+        run: mkdir -p data/summaries
       - name: Commit summary
         run: |
           git config user.name  "Summary Bot"

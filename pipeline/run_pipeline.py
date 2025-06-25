@@ -32,7 +32,9 @@ for tk in tickers:
     blocks.append(build_block(tk, split_and_indent(a_raw), b_raw))
 
 html = build_html(blocks)
-out  = Path(f"data/summaries/InvestmentSummary_{datetime.date.today()}.html")
-out.parent.mkdir(parents=True, exist_ok=True)
+date = datetime.date.today()
+out_dir = Path("data/summaries")
+out_dir.mkdir(parents=True, exist_ok=True)
+out = out_dir / f"InvestmentSummary_{date}.html"
 out.write_text(html, encoding="utf-8")
 print(f"\u2713 saved {out}")
