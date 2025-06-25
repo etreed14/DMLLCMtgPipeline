@@ -1,8 +1,9 @@
 name: Generate summary
+
 on:
   push:
     paths:
-      - 'data/transcripts/**'
+      - "data/transcripts/**"
 
 jobs:
   run:
@@ -10,17 +11,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: {python-version: '3.11'}
-      - run: pip install -U pip && pip install -r requirements.txt
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: |
+          pip install -U pip
+          pip install -r requirements.txt
       - name: Run pipeline
-        env: {OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}}
-        run: python pipeline/run_pipeline.py
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python pipeline/run_pipeline.py
       - name: Commit summary
         run: |
           git diff --quiet data/summaries/*.html || (
             git config user.name  "Summary Bot"
             git config user.email "actions@github.com"
-            git add data/summaries/*.html
+            git add  data/summaries/*.html
             git commit -m "Auto-generated meeting summary"
             git push
           )

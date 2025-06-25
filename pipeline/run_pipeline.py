@@ -1,14 +1,15 @@
 import datetime
-from pathlib import Path
+from pathlib import Path, PurePath
 from collections import defaultdict
 from utils import extract_tickers
 from llm_calls import stage_a, stage_b
 from formatter import split_and_indent, build_block, build_html
 
+OUTDIR = Path("data/summaries")
+OUTDIR.mkdir(parents=True, exist_ok=True)
+
 
 def main() -> None:
-    OUTDIR = Path("data/summaries")
-    OUTDIR.mkdir(parents=True, exist_ok=True)
 
     BASE_PROMPT = Path("prompts/MtgGPTPromptV9.txt").read_text()
     TRANSCRIPT = Path("data/transcripts/dinnerTranscript.txt").read_text()
