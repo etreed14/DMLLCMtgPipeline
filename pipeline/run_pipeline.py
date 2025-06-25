@@ -39,9 +39,14 @@ def main() -> None:
         blocks.append(build_block(tk, split_and_indent(a_raw), b_raw))
 
     html = build_html(blocks)
-    out = OUTDIR / f"InvestmentSummary_{datetime.date.today()}.html"
-    out.write_text(html, encoding="utf-8")
-    print(f"\u2713 saved {out}")
+
+    # ensure the summary includes all tickers before writing
+    if all(tk in html for tk in tickers):
+        out = OUTDIR / f"InvestmentSummary_{datetime.date.today()}.html"
+        out.write_text(html, encoding="utf-8")
+        print(f"\u2713 saved {out}")
+    else:
+        print("summary missing tickers; skipping save", flush=True)
 
 
 if __name__ == "__main__":
