@@ -1,20 +1,55 @@
-import datetime
-from pathlib import Path
-from utils import extract_tickers
-from llm_calls import stage_a, stage_b
-from formatter import split_and_indent, build_block, build_html
+"""
+Minimal helper used by run_pipeline.py
+Restores the stage_a / stage_b interface expected by V9.
+"""
 
-BASE_PROMPT = Path("prompts/MtgGPTPromptV9.txt").read_text()
-TRANSCRIPT  = Path("data/transcripts/dinnerTranscript.txt").read_text()
+import os
+import openai
 
-blocks = []
-for tk in extract_tickers(TRANSCRIPT):
-    a_raw = stage_a(tk, BASE_PROMPT, TRANSCRIPT)
-    b_raw = stage_b(tk, BASE_PROMPT, TRANSCRIPT)
-    blocks.append(build_block(tk, split_and_indent(a_raw), b_raw))
+# ------------------------------------------------------------------
+# Configure OpenAI
+# ------------------------------------------------------------------
+openai.api_key = os.getenv("OPENAI_API_KEY")
+MODEL = "gpt-4o-mini"          # adjust if you prefer a different model
 
-html = build_html(blocks)
-out  = Path(f"data/summaries/InvestmentSummary_{datetime.date.today()}.html")
-out.parent.mkdir(parents=True, exist_ok=True)
-out.write_text(html, encoding="utf-8")
-print("✔ saved", out)
+# ------------------------------------------------------------------
+# Tiny wrapper around ChatCompletion
+# ------------------------------------------------------------------
+def _ask(msg: str, temperature: float = 0.3) -> str:
+    """Send a single-turn prompt and return the assistant’s reply (stripped)."""
+    rsp = openai.ChatCompletion.create(
+        model=MODEL,
+        messages=[
+            {"role": "system", "content": "You are MtgGPT."},
+            {"role": "user",   "content": msg},
+        ],
+        temperature=temperature,
+    )
+    return rsp.choices[0].message.content.strip()
+
+
+# ------------------------------------------------------------------
+# Public helpers expected by run_pipeline.py
+# ------------------------------------------------------------------
+def stage_a(ticker: str, base_prompt: str, transcript: str) -> str:
+    """
+    Generate Stage A (Narrative Summary) for a single ticker.
+    """
+    prompt = (
+        f"{base_prompt}\n\n"
+        f"Only produce **Stage A** for {ticker}.\n\n"
+        f"{transcript}"
+    )
+    return _ask(prompt)
+
+
+def stage_b(ticker: str, base_prompt: str, transcript: str) -> str:
+    """
+    Generate Stage B (Fact Ledger) for a single ticker.
+    """
+    prompt = (
+        f"{base_prompt}\n\n"
+        f"Only produce **Stage B** for {ticker}.\n\n"
+        f"{transcript}"
+    )
+    return _ask(prompt)
