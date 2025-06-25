@@ -16,7 +16,9 @@ tickers = extract_tickers(TRANSCRIPT)
 for tk in tickers:
     safe_input = TRANSCRIPT[:24000]
     a_raw = stage_a(tk, BASE_PROMPT, safe_input)
+    print(f"[{datetime.datetime.now().isoformat()}]  finished Stage A for {tk}", flush=True)
     b_raw = stage_b(tk, BASE_PROMPT, safe_input)
+    print(f"[{datetime.datetime.now().isoformat()}]  finished Stage B for {tk}", flush=True)
     results[tk] = (a_raw, b_raw)
     for line in (a_raw.splitlines() + b_raw.splitlines()):
         for other in tickers:
