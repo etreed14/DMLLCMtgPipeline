@@ -5,6 +5,9 @@ from utils import extract_tickers
 from llm_calls import stage_a, stage_b
 from formatter import split_and_indent, build_block, build_html
 
+OUTDIR = Path("data/summaries")
+OUTDIR.mkdir(parents=True, exist_ok=True)
+
 BASE_PROMPT = Path("prompts/MtgGPTPromptV9.txt").read_text()
 TRANSCRIPT  = Path("data/transcripts/dinnerTranscript.txt").read_text()
 
@@ -32,9 +35,6 @@ for tk in tickers:
     blocks.append(build_block(tk, split_and_indent(a_raw), b_raw))
 
 html = build_html(blocks)
-date = datetime.date.today()
-out_dir = Path("data/summaries")
-out_dir.mkdir(parents=True, exist_ok=True)
-out = out_dir / f"InvestmentSummary_{date}.html"
+out = OUTDIR / f"InvestmentSummary_{datetime.date.today()}.html"
 out.write_text(html, encoding="utf-8")
 print(f"\u2713 saved {out}")

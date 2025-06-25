@@ -1,17 +1,16 @@
-import os, openai
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
+import os
+from vendor_openai import chat_completion
 
 def _ask(msg: str) -> str:
-    rsp = openai.ChatCompletion.create(
-        model="gpt-4o",
+    rsp = chat_completion(
         messages=[
             {"role": "system", "content": "You are MtgGPT."},
             {"role": "user", "content": msg},
         ],
+        model="gpt-4o",
         temperature=0.3,
     )
-    return rsp.choices[0].message.content.strip()
+    return rsp["choices"][0]["message"]["content"].strip()
 
 
 def stage_a(tk: str, base_prompt: str, transcript: str) -> str:
