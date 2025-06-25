@@ -1,55 +1,50 @@
 """
-Minimal helper used by run_pipeline.py
-Restores the stage_a / stage_b interface expected by V9.
+pipeline/run_pipeline.py
+Generate Stage A + Stage B for every ticker (or company name) found
+in the newest transcript, build the V9-style HTML, and save it under
+data/summaries/InvestmentSummary_YYYY-MM-DD.html
 """
 
-import os
-import openai
+import datetime
+from pathlib import Path
+from utils import extract_tickers
+from llm_calls import stage_a, stage_b
+from formatter import split_and_indent, build_block, build_html
 
-# ------------------------------------------------------------------
-# Configure OpenAI
-# ------------------------------------------------------------------
-openai.api_key = os.getenv("OPENAI_API_KEY")
-MODEL = "gpt-4o-mini"          # adjust if you prefer a different model
+# ------------------------------------------------------------------ #
+# 1. Read prompt and the ONLY .txt transcript in data/transcripts/
+# ------------------------------------------------------------------ #
+BASE_PROMPT = Path("prompts/MtgGPTPromptV9.txt").read_text()
 
-# ------------------------------------------------------------------
-# Tiny wrapper around ChatCompletion
-# ------------------------------------------------------------------
-def _ask(msg: str, temperature: float = 0.3) -> str:
-    """Send a single-turn prompt and return the assistant’s reply (stripped)."""
-    rsp = openai.ChatCompletion.create(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": "You are MtgGPT."},
-            {"role": "user",   "content": msg},
-        ],
-        temperature=temperature,
-    )
-    return rsp.choices[0].message.content.strip()
+transcripts = list(Path("data/transcripts").glob("*.txt"))
+if not transcripts:
+    raise SystemExit("🚫 No transcript found in data/transcripts/")
+if len(transcripts) > 1:
+    print("⚠️  Multiple transcripts found; using first alphabetically.")
+TRANSCRIPT = transcripts[0].read_text()
 
+# ------------------------------------------------------------------ #
+# 2. Extract tickers / names
+# ------------------------------------------------------------------ #
+tickers = extract_tickers(TRANSCRIPT)
+if not tickers:
+    tickers = ["GENERIC"]          # fallback so we always produce an HTML
 
-# ------------------------------------------------------------------
-# Public helpers expected by run_pipeline.py
-# ------------------------------------------------------------------
-def stage_a(ticker: str, base_prompt: str, transcript: str) -> str:
-    """
-    Generate Stage A (Narrative Summary) for a single ticker.
-    """
-    prompt = (
-        f"{base_prompt}\n\n"
-        f"Only produce **Stage A** for {ticker}.\n\n"
-        f"{transcript}"
-    )
-    return _ask(prompt)
+# ------------------------------------------------------------------ #
+# 3. Build blocks (Stage A + Stage B) per ticker
+# ------------------------------------------------------------------ #
+blocks = []
+for tk in tickers:
+    print(f"🟢 Processing {tk} …")
+    a_raw = stage_a(tk, BASE_PROMPT, TRANSCRIPT)
+    b_raw = stage_b(tk, BASE_PROMPT, TRANSCRIPT)
+    blocks.append(build_block(tk, split_and_indent(a_raw), b_raw))
 
-
-def stage_b(ticker: str, base_prompt: str, transcript: str) -> str:
-    """
-    Generate Stage B (Fact Ledger) for a single ticker.
-    """
-    prompt = (
-        f"{base_prompt}\n\n"
-        f"Only produce **Stage B** for {ticker}.\n\n"
-        f"{transcript}"
-    )
-    return _ask(prompt)
+# ------------------------------------------------------------------ #
+# 4. Write HTML
+# ------------------------------------------------------------------ #
+html = build_html(blocks)
+out_path = Path("data/summaries") / f"InvestmentSummary_{datetime.date.today()}.html"
+out_path.parent.mkdir(parents=True, exist_ok=True)
+out_path.write_text(html, encoding="utf-8")
+print("✔ saved", out_path)
