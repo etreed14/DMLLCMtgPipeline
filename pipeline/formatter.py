@@ -21,10 +21,18 @@ def build_block(ticker: str, cleaned_a: str, raw_b: str) -> str:
     )
 
 def build_html(body_parts: list[str]) -> str:
-    css = ("body{background:#000;color:#fff;font-family:Arial,sans-serif;"
-           "line-height:1.5;padding:40px}"
-           "h2.hdr{font-size:22px;font-weight:bold;margin:30px 0 10px}"
-           "h2.hdr .ticker{font-size:24px;font-weight:bold;color:#fff}"
-           "h2.hdr .rest{font-size:20px;color:#fff}")
-    return f"<!DOCTYPE html><html><head><meta charset='utf-8'><style>{css}</style></head><body>"\
-           + "\n".join(body_parts) + "</body></html>"
+    css = (
+        "body{background:#000;color:#fff;font-family:Arial,sans-serif;line-height:1.5;padding:40px;}"
+        "h2.hdr{font-size:22px;font-weight:bold;margin:30px 0 10px;}"
+        "h2.hdr .ticker{font-size:24px;font-weight:bold;color:#ffffff;}"
+        "h2.hdr .rest{font-size:20px;color:#ffffff;}"
+        "ul{padding-left:20px;}"
+        ".lvl1>li{margin:10px 0;}"
+        ".lvl2{list-style-type:circle;}"
+        ".lvl3{list-style-type:square;}"
+    )
+    return (
+        f"<!DOCTYPE html><html><head><meta charset='utf-8'><style>{css}</style></head><body>"
+        + "\n".join(body_parts)
+        + "</body></html>"
+    )

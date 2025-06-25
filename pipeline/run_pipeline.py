@@ -14,10 +14,9 @@ propagate_to = defaultdict(list)
 
 tickers = extract_tickers(TRANSCRIPT)
 for tk in tickers:
-    safe_input = TRANSCRIPT[:24000]
-    a_raw = stage_a(tk, BASE_PROMPT, safe_input)
+    a_raw = stage_a(tk, BASE_PROMPT, TRANSCRIPT)
     print(f"[{datetime.datetime.now().isoformat()}]  finished Stage A for {tk}", flush=True)
-    b_raw = stage_b(tk, BASE_PROMPT, safe_input)
+    b_raw = stage_b(tk, BASE_PROMPT, TRANSCRIPT)
     print(f"[{datetime.datetime.now().isoformat()}]  finished Stage B for {tk}", flush=True)
     results[tk] = (a_raw, b_raw)
     for line in (a_raw.splitlines() + b_raw.splitlines()):
@@ -36,4 +35,4 @@ html = build_html(blocks)
 out  = Path(f"data/summaries/InvestmentSummary_{datetime.date.today()}.html")
 out.parent.mkdir(parents=True, exist_ok=True)
 out.write_text(html, encoding="utf-8")
-print("✔ saved", out)
+print(f"\u2713 saved {out}")
