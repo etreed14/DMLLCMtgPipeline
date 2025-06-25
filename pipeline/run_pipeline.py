@@ -14,8 +14,9 @@ propagate_to = defaultdict(list)
 
 tickers = extract_tickers(TRANSCRIPT)
 for tk in tickers:
-    a_raw = stage_a(tk, BASE_PROMPT, TRANSCRIPT)
-    b_raw = stage_b(tk, BASE_PROMPT, TRANSCRIPT)
+    snippet = TRANSCRIPT[:24000]
+    a_raw = stage_a(tk, BASE_PROMPT, snippet)
+    b_raw = stage_b(tk, BASE_PROMPT, snippet)
     results[tk] = (a_raw, b_raw)
     for line in (a_raw.splitlines() + b_raw.splitlines()):
         for other in tickers:
