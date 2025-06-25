@@ -1,11 +1,8 @@
 name: Generate summary
 on:
-  workflow_dispatch:
   push:
     paths:
-      - "data/transcripts/**"
-      - "prompts/**"
-      - "pipeline/**"
+      - 'data/transcripts/**'
 
 jobs:
   run:
@@ -13,18 +10,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: {python-version: "3.11"}
-      - run: |
-          pip install -U pip
-          pip install -r requirements.txt
-        continue-on-error: true
+        with: {python-version: '3.11'}
+      - run: pip install -U pip && pip install -r requirements.txt
       - name: Run pipeline
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        env: {OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}}
         run: python pipeline/run_pipeline.py
-        continue-on-error: true
-      - name: Ensure summaries folder exists
-        run: mkdir -p data/summaries
       - name: Commit summary
         run: |
-          git diff --quiet || (git config user.name "Summary Bot" && git config user.email "actions@github.com" && git add data/summaries/*.html && git commit -m "Auto-generated meeting summary" || echo "nothing to commit")
+          git diff --quiet data/summaries/*.html || (
+            git config user.name  "Summary Bot"
+            git config user.email "actions@github.com"
+            git add data/summaries/*.html
+            git commit -m "Auto-generated meeting summary"
+            git push
+          )
