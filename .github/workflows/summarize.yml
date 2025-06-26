@@ -7,6 +7,9 @@ on:
       - "prompts/**"
       - "pipeline/**"
 
+permissions:
+  contents: write
+
 jobs:
   run:
     runs-on: ubuntu-latest
@@ -25,7 +28,6 @@ jobs:
         with:
           name: InvestmentSummary
           path: data/summaries/*.html
-
       - name: Commit summary
         run: |
           git config user.name  "Summary Bot"
