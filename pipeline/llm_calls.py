@@ -1,10 +1,10 @@
 import os, openai, time
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
-MODEL = "gpt-4o-mini"
+MODEL = "gpt-4o"
 
 _WINDOW_START = time.time()
-_TOKENS_USED = 0
+_TOKENS_USED  = 0
 
 def _maybe_pause(tokens_needed: int):
     global _WINDOW_START, _TOKENS_USED
@@ -38,32 +38,31 @@ def _ask(msg: str) -> str:
     return out
 
 def stage_a(ticker: str, transcript: str) -> str:
-    stage_a_instructions = """STAGE A — NARRATIVE SUMMARY (clean bullets)
-────────────────────────────────────────────────────────────
-Goal: craft a fluent, investor‑style pitch for each company.
+    instructions = """
+You are a summarizer. Your task is to extract a fluent, investor-style summary per company.
 
-Header line (bold):
-  (TICKER) — Long / Short — mm/dd/yyyy — $price
+For each company:
+• Start with a bolded header: (TICKER) — Long / Short — mm/dd/yyyy — $price
+• Write full-sentence primary bullets for each material idea.
+• If a bullet contains multiple points (e.g. "but", "and", ";"), split it and indent the rest.
+• Push all numbers, stats, or dates into indented sub-bullets.
 
-• One idea per bullet; natural prose.  
-• If a bullet contains multiple ideas (joined by “;”, “ and ”, or “ but ”), split it.  
-• If the second idea depends on the first, indent one level.  
-• Push ALL numbers / % / $ / dates to indented sub‑bullets.
-
-Return only the Stage A summary."""
-    return _ask(f"{stage_a_instructions}\n\n{transcript}")
+Use real company names or tickers mentioned in the transcript. Group bullets clearly by company. Do not group by topic like “Activism” or “AI”. No speaker names or summaries.
+"""
+    return _ask(f"{instructions.strip()}\n\n{transcript}")
 
 def stage_b(ticker: str, transcript: str) -> str:
-    stage_b_instructions = """STAGE B — FACT LEDGER (Quick‑stats source)
-────────────────────────────────────────────────────────────
-Goal: capture all remaining stats, metrics, quotes grouped by company.
+    instructions = """
+You are a fact collector. Your task is to extract all remaining financials, metrics, quotes, and numeric insights per company.
 
-Company format:
-  (TICKER) — Facts
-  ──────────────────────
-  • Create buckets as needed (Financial, Edge/Tech, AI Use Cases, etc.)
-  • Use unlimited nesting. Never drop anything.
-  • Do NOT merge with Stage A — only new points.
+Format:
+(TICKER) — Facts
+──────────────────────
+• Create buckets like Financial, Tech, Risks, Installed Base, Catalysts, etc.
+• Use nested bullets to organize ideas (stat → detail → micro-detail)
+• Include ALL facts, even if they seem redundant. Do not editorialize.
+• Only use companies actually mentioned in the transcript.
 
-Return only the Stage B ledger."""
-    return _ask(f"{stage_b_instructions}\n\n{transcript}")
+Return only the fact ledger.
+"""
+    return _ask(f"{instructions.strip()}\n\n{transcript}")
