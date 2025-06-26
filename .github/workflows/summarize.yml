@@ -25,3 +25,11 @@ jobs:
         with:
           name: InvestmentSummary
           path: data/summaries/*.html
+
+      - name: Commit summary
+        run: |
+          git config user.name  "Summary Bot"
+          git config user.email "actions@github.com"
+          git add data/summaries/*.html || true
+          git commit -m "📝 Auto-generated meeting summary" || echo "nothing to commit"
+          git push
