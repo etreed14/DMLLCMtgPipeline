@@ -29,22 +29,40 @@ def _record_tokens(n: int):
     _TOKENS_USED += n
 
 def _ask(msg: str) -> str:
-    approx_in = len(msg) // 4
-    approx_out = 1500  # reserve space for expected output tokens
-    _maybe_pause(approx_in + approx_out)
+    import openai
+    import time
 
-    rsp = openai.chat.completions.create(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": "You are MtgGPT."},
-            {"role": "user",   "content": msg}
-        ],
-        temperature=0.3,
-    )
+    approx_in = len(msg) // 4
+    buffer_out = 2000  # reserve generous buffer
+    total_needed = approx_in + buffer_out
+
+    _maybe_pause(total_needed)
+
+    while True:
+        try:
+            rsp = openai.chat.completions.create(
+                model=MODEL,
+                messages=[
+                    {"role": "system", "content": "You are MtgGPT."},
+                    {"role": "user",   "content": msg}
+                ],
+                temperature=0.3,
+            )
+            break  # success, exit retry loop
+        except openai.RateLimitError as e:
+            print("⚠ Rate limit hit. Waiting 60s...")
+            time.sleep(60)
+            _reset_window()
+
     out = rsp.choices[0].message.content.strip()
     actual_out = len(out) // 4
     _record_tokens(approx_in + actual_out)
     return out
+
+def _reset_window():
+    global _WINDOW_START, _TOKENS_USED
+    _WINDOW_START = time.time()
+    _TOKENS_USED = 0
 
 def stage_a(ticker: str, transcript: str) -> str:
     instructions = """
