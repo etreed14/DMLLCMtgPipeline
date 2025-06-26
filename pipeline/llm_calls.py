@@ -4,7 +4,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 MODEL = "gpt-4o-mini"
 
 _WINDOW_START = time.time()
-_TOKENS_USED  = 0
+_TOKENS_USED = 0
 
 def _maybe_pause(tokens_needed: int):
     global _WINDOW_START, _TOKENS_USED
@@ -13,9 +13,7 @@ def _maybe_pause(tokens_needed: int):
         _WINDOW_START = time.time()
         _TOKENS_USED = 0
     if _TOKENS_USED + tokens_needed > 29000:
-        wait_time = 60 - elapsed
-        print(f"⏳ Waiting {wait_time:.1f}s to avoid token rate-limit...")
-        time.sleep(wait_time)
+        time.sleep(60 - elapsed)
         _WINDOW_START = time.time()
         _TOKENS_USED = 0
 
@@ -30,7 +28,7 @@ def _ask(msg: str) -> str:
         model=MODEL,
         messages=[
             {"role": "system", "content": "You are MtgGPT."},
-            {"role": "user", "content": msg}
+            {"role": "user",   "content": msg}
         ],
         temperature=0.3,
     )
@@ -39,36 +37,33 @@ def _ask(msg: str) -> str:
     _record_tokens(approx_in + approx_out)
     return out
 
-def stage_a(ticker: str, base_prompt: str, transcript: str) -> str:
-    stage_a_prompt = """STAGE A — NARRATIVE SUMMARY (clean bullets)
+def stage_a(ticker: str, transcript: str) -> str:
+    stage_a_instructions = """STAGE A — NARRATIVE SUMMARY (clean bullets)
 ────────────────────────────────────────────────────────────
-Goal: craft a fluent, investor‑style pitch for **each company**.
+Goal: craft a fluent, investor‑style pitch for each company.
 
 Header line (bold):
-  **(TICKER) — Long / Short — mm/dd/yyyy — $price**
+  (TICKER) — Long / Short — mm/dd/yyyy — $price
 
-• Keep adding primary bullets until every material idea is voiced
-  (edge, catalysts, valuation maths, debate, risks, colour).  
 • One idea per bullet; natural prose.  
-• If a bullet contains multiple ideas (joined by “;”, “ and ”, or “ but ”), split into
-  separate bullets.  If the second idea depends on the first, indent it one level.
+• If a bullet contains multiple ideas (joined by “;”, “ and ”, or “ but ”), split it.  
+• If the second idea depends on the first, indent one level.  
 • Push ALL numbers / % / $ / dates to indented sub‑bullets.
 
-Print every company’s section, then stop."""
-    return _ask(f"{stage_a_prompt}\n\n{transcript}")
+Return only the Stage A summary."""
+    return _ask(f"{stage_a_instructions}\n\n{transcript}")
 
-def stage_b(ticker: str, base_prompt: str, transcript: str) -> str:
-    stage_b_prompt = """STAGE B — FACT LEDGER (Quick‑stats source)
+def stage_b(ticker: str, transcript: str) -> str:
+    stage_b_instructions = """STAGE B — FACT LEDGER (Quick‑stats source)
 ────────────────────────────────────────────────────────────
-Goal: capture **all** remaining stats / metrics / quotes, grouped by company.
+Goal: capture all remaining stats, metrics, quotes grouped by company.
 
-Loop over every ticker seen in Stage A:
-
+Company format:
   (TICKER) — Facts
   ──────────────────────
-  • Create whatever buckets are needed (Financial, Edge/Tech, AI Use Cases, …).
-  • Unlimited nesting — NOTHING is dropped.
-  • Do *not* rewrite or merge with Stage A.
+  • Create buckets as needed (Financial, Edge/Tech, AI Use Cases, etc.)
+  • Use unlimited nesting. Never drop anything.
+  • Do NOT merge with Stage A — only new points.
 
-Print the full fact ledger and stop."""
-    return _ask(f"{stage_b_prompt}\n\n{transcript}")
+Return only the Stage B ledger."""
+    return _ask(f"{stage_b_instructions}\n\n{transcript}")
