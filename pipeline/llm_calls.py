@@ -12,7 +12,7 @@ MODEL = "gpt-4o-mini"           # or any model you prefer
 
 def _ask(msg: str, *, temperature: float = 0.3) -> str:
     """One-shot ChatCompletion call (works with openai-python ≥ 1.0)."""
-    rsp = openai.ChatCompletion.create(
+    rsp = openai.chat.completions.create(
         model=MODEL,
         messages=[
             {"role": "system", "content": "You are MtgGPT."},
