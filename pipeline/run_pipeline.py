@@ -28,8 +28,8 @@ TRANSCRIPT = (
 )
 
 # === Run Stage A + B together (one-time full sweep) ===
-a_raw = stage_a("MEETING", PROMPT, TRANSCRIPT)
-b_raw = stage_b("MEETING", PROMPT, TRANSCRIPT)
+a_raw = stage_a("MEETING", TRANSCRIPT)
+b_raw = stage_b("MEETING", TRANSCRIPT)
 
 # === Merge + format ===
 blocks = [build_block("MEETING", split_and_indent(a_raw), b_raw)]
