@@ -8,12 +8,19 @@ _TOKENS_USED  = 0
 
 def _maybe_pause(tokens_needed: int):
     global _WINDOW_START, _TOKENS_USED
-    elapsed = time.time() - _WINDOW_START
+    now = time.time()
+    elapsed = now - _WINDOW_START
+
+    # Reset the window after 60s
     if elapsed > 60:
-        _WINDOW_START = time.time()
+        _WINDOW_START = now
         _TOKENS_USED = 0
-    if _TOKENS_USED + tokens_needed > 29000:
-        time.sleep(60 - elapsed)
+
+    # If the next call would exceed 30k, pause until the window resets
+    if _TOKENS_USED + tokens_needed >= 29900:
+        wait = 60 - elapsed
+        print(f"⏳ Hit token cap. Waiting {wait:.1f}s...")
+        time.sleep(wait)
         _WINDOW_START = time.time()
         _TOKENS_USED = 0
 
