@@ -3,7 +3,7 @@ Thin helper for V9 pipeline: wraps a single ChatGPT call and exposes
 stage_a() / stage_b() exactly as the old code expects.
 """
 
-import os, openai, time
+import os, openai, time, re
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 MODEL = "gpt-4o-mini"
@@ -53,8 +53,10 @@ def _ask(msg: str) -> str:
 # -------------------------------------------------------------------------
 
 def stage_a(ticker: str, base_prompt: str, transcript: str) -> str:
-    # Get only the Stage A section of the prompt
-    stage_a_prompt = base_prompt.split("STAGE B")[0].strip()
+    match = re.search(r"(.*?)STAGE B", base_prompt, re.DOTALL | re.IGNORECASE)
+    if not match:
+        raise ValueError("Stage A section not found in prompt.")
+    stage_a_prompt = match.group(1).strip()
 
     prompt = (
         f"{stage_a_prompt}\n\n"
@@ -64,8 +66,10 @@ def stage_a(ticker: str, base_prompt: str, transcript: str) -> str:
     return _ask(prompt)
 
 def stage_b(ticker: str, base_prompt: str, transcript: str) -> str:
-    # Get the Stage B section between B and C
-    stage_b_prompt = base_prompt.split("STAGE B —")[1].split("STAGE C")[0].strip()
+    match = re.search(r"STAGE B.*?\n(.*?)(STAGE C|$)", base_prompt, re.DOTALL | re.IGNORECASE)
+    if not match:
+        raise ValueError("Stage B section not found in prompt.")
+    stage_b_prompt = match.group(1).strip()
 
     prompt = (
         f"{stage_b_prompt}\n\n"
