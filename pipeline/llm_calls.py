@@ -7,18 +7,15 @@ import os
 import openai
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
-MODEL = "gpt-4o-mini"           # or any model you prefer
 
-
-def _ask(msg: str, *, temperature: float = 0.3) -> str:
-    """One-shot ChatCompletion call (works with openai-python ≥ 1.0)."""
+def _ask(msg: str) -> str:
     rsp = openai.chat.completions.create(
-        model=MODEL,
+        model="gpt-4o",  # or "gpt-4o-mini" if you prefer
         messages=[
             {"role": "system", "content": "You are MtgGPT."},
-            {"role": "user",   "content": msg},
+            {"role": "user", "content": msg}
         ],
-        temperature=temperature,
+        temperature=0.3,
     )
     return rsp.choices[0].message.content.strip()
 
