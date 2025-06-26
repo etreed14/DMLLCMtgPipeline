@@ -39,17 +39,44 @@ def _ask(msg: str) -> str:
     _record_tokens(approx_in + approx_out)
     return out
 
-def stage_a(ticker: str, full_prompt: str, transcript: str) -> str:
-    # Grab prompt up to Stage B
-    a_part = full_prompt.split("STAGE B")[0].strip()
-    msg = f"{a_part}\n\nOnly produce **Stage A** for {ticker}.\n\n{transcript}"
+# ——————————————————————————————————————————————
+# Embedded prompt logic for V9 format: no external .txt
+# ——————————————————————————————————————————————
+
+_STAGE_A_PROMPT = """Craft a fluent, investor-style pitch for **each company**.
+
+Header line (bold):
+  **(TICKER) — Long / Short — mm/dd/yyyy — $price**
+
+• Keep adding primary bullets until every material idea is voiced
+  (edge, catalysts, valuation math, debate, risks, etc).  
+• One idea per bullet — natural prose.
+• If a bullet contains multiple ideas (joined by ";", " and ", or " but"), split it.
+  If the second idea depends on the first, indent it one level deeper.
+• Push all numbers / % / $ / dates to indented sub-bullets.
+• Keep your tone punchy but professional.
+"""
+
+_STAGE_B_PROMPT = """Build an exhaustive fact ledger for **each company**.
+
+Company block header:
+  (TICKER) — Facts
+  ──────────────────────
+
+• Create whatever buckets are needed (Financial, Edge/Tech, AI Use Cases, etc.)
+• Unlimited nesting: bullets → subpoenas → sub-sub-bullets
+• Do NOT drop any details — include every stat, quote, metric, or claim.
+• Do not merge with Stage A — treat this as a parallel ledger of all unused data.
+"""
+
+# ——————————————————————————————————————————————
+# Stage A / B with embedded prompts
+# ——————————————————————————————————————————————
+
+def stage_a(ticker: str, transcript: str) -> str:
+    msg = f"{_STAGE_A_PROMPT}\n\nOnly produce **Stage A** for {ticker}.\n\n{transcript}"
     return _ask(msg)
 
-def stage_b(ticker: str, full_prompt: str, transcript: str) -> str:
-    # Grab part between Stage B and Stage C
-    try:
-        b_part = full_prompt.split("STAGE B —")[1].split("STAGE C")[0].strip()
-    except IndexError:
-        raise ValueError("❌ Could not locate STAGE B or C in prompt. Double-check prompt format.")
-    msg = f"{b_part}\n\nOnly produce **Stage B** for {ticker}.\n\n{transcript}"
+def stage_b(ticker: str, transcript: str) -> str:
+    msg = f"{_STAGE_B_PROMPT}\n\nOnly produce **Stage B** for {ticker}.\n\n{transcript}"
     return _ask(msg)
