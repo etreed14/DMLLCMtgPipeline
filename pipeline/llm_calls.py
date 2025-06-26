@@ -1,9 +1,17 @@
-import os, openai
+"""
+Thin helper for V9 pipeline: wraps a single ChatGPT call and exposes
+stage_a() / stage_b() exactly as the old code expects.
+"""
+
+import os
+import openai
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
-MODEL = "gpt-4o-mini"
+MODEL = "gpt-4o-mini"           # or any model you prefer
 
-def _ask(msg: str, temperature: float = 0.3) -> str:
+
+def _ask(msg: str, *, temperature: float = 0.3) -> str:
+    """One-shot ChatCompletion call (works with openai-python ≥ 1.0)."""
     rsp = openai.chat.completions.create(
         model=MODEL,
         messages=[
@@ -15,9 +23,9 @@ def _ask(msg: str, temperature: float = 0.3) -> str:
     return rsp.choices[0].message.content.strip()
 
 
-# ------------------------------------------------------------------
-# helpers expected by run_pipeline.py
-# ------------------------------------------------------------------
+# ------------------------------------------------------------------ #
+#  Public helpers that run_pipeline.py imports
+# ------------------------------------------------------------------ #
 def stage_a(ticker: str, base_prompt: str, transcript: str) -> str:
     prompt = (
         f"{base_prompt}\n\n"
