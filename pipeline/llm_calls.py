@@ -13,16 +13,13 @@ _WINDOW_START = time.time()
 _TOKENS_USED  = 0
 
 def _maybe_pause(tokens_needed: int):
-    """Pause if the rolling one-minute token use is near the limit."""
     global _WINDOW_START, _TOKENS_USED
     elapsed = time.time() - _WINDOW_START
 
-    # Reset window after 60 seconds
     if elapsed > 60:
         _WINDOW_START = time.time()
         _TOKENS_USED = 0
 
-    # If request would exceed 30000 tokens/minute, wait
     if _TOKENS_USED + tokens_needed > 29000:
         wait_time = 60 - elapsed
         print(f"⏳ Waiting {wait_time:.1f}s to avoid token rate-limit...")
@@ -35,7 +32,7 @@ def _record_tokens(n: int):
     _TOKENS_USED += n
 
 def _ask(msg: str) -> str:
-    approx_in = len(msg) // 4  # Approximate input tokens
+    approx_in = len(msg) // 4
     _maybe_pause(approx_in)
 
     rsp = openai.chat.completions.create(
@@ -51,17 +48,27 @@ def _ask(msg: str) -> str:
     _record_tokens(approx_in + approx_out)
     return out
 
+# -------------------------------------------------------------------------
+# Public functions: run Stage A and Stage B by slicing the prompt correctly
+# -------------------------------------------------------------------------
+
 def stage_a(ticker: str, base_prompt: str, transcript: str) -> str:
+    # Get only the Stage A section of the prompt
+    stage_a_prompt = base_prompt.split("STAGE B")[0].strip()
+
     prompt = (
-        f"{base_prompt}\n\n"
+        f"{stage_a_prompt}\n\n"
         f"Only produce **Stage A** for {ticker}.\n\n"
         f"{transcript}"
     )
     return _ask(prompt)
 
 def stage_b(ticker: str, base_prompt: str, transcript: str) -> str:
+    # Get the Stage B section between B and C
+    stage_b_prompt = base_prompt.split("STAGE B —")[1].split("STAGE C")[0].strip()
+
     prompt = (
-        f"{base_prompt}\n\n"
+        f"{stage_b_prompt}\n\n"
         f"Only produce **Stage B** for {ticker}.\n\n"
         f"{transcript}"
     )
