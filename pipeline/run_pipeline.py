@@ -1,26 +1,16 @@
-"""
-Generate a full HTML meeting summary using V9 logic:
-• Stage A — Narrative summary
-• Stage B — Fact ledger
-• Stage C — Output formatting
-"""
-
 import datetime
 from pathlib import Path
-
 from llm_calls import stage_a, stage_b
 from formatter import split_and_indent
 
-# Load prompt and transcript
 BASE_PROMPT = Path("prompts/MtgGPTPromptV9.txt").read_text()
 TRANSCRIPT  = Path("data/transcripts/dinnerTranscript.txt").read_text()
 
-# Stage A and B (called once, full transcript)
 a_raw = stage_a("MEETING", BASE_PROMPT, TRANSCRIPT)
 b_raw = stage_b("MEETING", BASE_PROMPT, TRANSCRIPT)
 a_bullets = split_and_indent(a_raw)
 
-# Build HTML
+# Build clean HTML
 final_html = '''<!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <style>
@@ -35,12 +25,12 @@ final_html = '''<!DOCTYPE html>
 </style></head><body><section>
 '''
 
-# Header
-final_html += f'<h2 class="hdr"><span class="ticker">MEETING</span> <span class="rest">— Summary</span></h2>\n<ul class="lvl1">\n'
+# A header
+final_html += '<h2 class="hdr"><span class="ticker">MEETING</span> <span class="rest">— Summary</span></h2>\n<ul class="lvl1">\n'
 
 # Stage A bullets
 for line in a_bullets.strip().splitlines():
-    indent = line.count(' ')  # em-spaces
+    indent = line.count(' ')  # em-space
     clean = line.strip(' •').strip()
     if indent == 0:
         final_html += f'<li>{clean}</li>\n'
@@ -64,10 +54,8 @@ for line in b_raw.strip().splitlines():
         final_html += f'<ul class="lvl3"><li>{clean}</li></ul>\n'
 final_html += '</ul></li></ul>\n'
 
-# Finish HTML
 final_html += '</section></body></html>'
 
-# Write file
 out = Path(f"data/summaries/InvestmentSummary_{datetime.date.today()}.html")
 out.parent.mkdir(parents=True, exist_ok=True)
 out.write_text(final_html, encoding="utf-8")
