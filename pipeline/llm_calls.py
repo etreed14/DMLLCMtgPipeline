@@ -6,7 +6,7 @@ stage_a() / stage_b() exactly as the old code expects.
 import os, openai, time
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
-MODEL = "gpt-4o"
+MODEL = "gpt-4o-mini"
 
 # Track token usage for rate-limit window
 _WINDOW_START = time.time()
