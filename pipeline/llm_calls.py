@@ -1,4 +1,5 @@
 import os, openai, time
+
 openai.api_key = os.getenv("OPENAI_API_KEY")
 MODEL = "gpt-4o"
 
@@ -29,7 +30,7 @@ def _ask(msg: str) -> str:
         model=MODEL,
         messages=[
             {"role": "system", "content": "You are MtgGPT."},
-            {"role": "user", "content": msg}
+            {"role": "user",   "content": msg}
         ],
         temperature=0.3,
     )
@@ -38,14 +39,17 @@ def _ask(msg: str) -> str:
     _record_tokens(approx_in + approx_out)
     return out
 
-# ——————————————————————————————
-# Final fixes: only use Stage A / B portion of prompt
-# ——————————————————————————————
-
 def stage_a(ticker: str, full_prompt: str, transcript: str) -> str:
-    prompt = full_prompt.split("STAGE B —")[0].strip()
-    return _ask(f"{prompt}\n\nOnly produce **Stage A** for {ticker}.\n\n{transcript}")
+    # Grab prompt up to Stage B
+    a_part = full_prompt.split("STAGE B")[0].strip()
+    msg = f"{a_part}\n\nOnly produce **Stage A** for {ticker}.\n\n{transcript}"
+    return _ask(msg)
 
 def stage_b(ticker: str, full_prompt: str, transcript: str) -> str:
-    b_part = full_prompt.split("STAGE B —")[1].split("STAGE C")[0].strip()
-    return _ask(f"{b_part}\n\nOnly produce **Stage B** for {ticker}.\n\n{transcript}")
+    # Grab part between Stage B and Stage C
+    try:
+        b_part = full_prompt.split("STAGE B —")[1].split("STAGE C")[0].strip()
+    except IndexError:
+        raise ValueError("❌ Could not locate STAGE B or C in prompt. Double-check prompt format.")
+    msg = f"{b_part}\n\nOnly produce **Stage B** for {ticker}.\n\n{transcript}"
+    return _ask(msg)
