@@ -30,7 +30,9 @@ def _record_tokens(n: int):
 
 def _ask(msg: str) -> str:
     approx_in = len(msg) // 4
-    _maybe_pause(approx_in)
+    approx_out = 1500  # reserve space for expected output tokens
+    _maybe_pause(approx_in + approx_out)
+
     rsp = openai.chat.completions.create(
         model=MODEL,
         messages=[
@@ -40,8 +42,8 @@ def _ask(msg: str) -> str:
         temperature=0.3,
     )
     out = rsp.choices[0].message.content.strip()
-    approx_out = len(out) // 4
-    _record_tokens(approx_in + approx_out)
+    actual_out = len(out) // 4
+    _record_tokens(approx_in + actual_out)
     return out
 
 def stage_a(ticker: str, transcript: str) -> str:
