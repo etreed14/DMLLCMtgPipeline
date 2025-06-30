@@ -1,101 +1,88 @@
 """
-pipeline/run_pipeline.py   ·   V9 prompt-slice runner (minute-first compression)
-===============================================================================
+run_pipeline.py  ·  FINAL V9 WITH MINUTE LOGIC RESTORED
+========================================================
 
-Flow
-----
-1. Read MtgGPTPromptV9a.txt  (Stage-A instructions)
-2. Read MtgGPTPromptV9b.txt  (Stage-B instructions)
-3. Compress transcript lines …
-       Speaker N [hh:mm:ss] text
-   →   "N|m text"   for the **first** line of each minute
-       "N  text"    for subsequent lines in the same minute
-4. Call stage_a / stage_b once each.
-5. Build dark-mode HTML with Quick-Stats block and save.
+• Loads Stage A + B prompts from txt files
+• Compresses transcript lines using SPEAKER|MIN only on first line of each minute
+• Sends to llm_calls.stage_a / stage_b
+• Prints both to console and saves final HTML to /data/summaries/
 """
 
-from __future__ import annotations
 import re, datetime
 from pathlib import Path
-from llm_calls import stage_a, stage_b          # two-arg versions
+from llm_calls import stage_a, stage_b
 
-# ───── 1 · load prompt slices ───────────────────────────────────────────────
-PROMPT_A = Path("prompts/MtgGPTPromptV9a.txt").read_text()
-PROMPT_B = Path("prompts/MtgGPTPromptV9b.txt").read_text()
+# ── 1 · Load prompts ───────────────────────────────────────────────────────
+PROMPT_A = Path("prompts/MtgGPTPromptV9a.txt").read_text(encoding="utf-8").strip()
+PROMPT_B = Path("prompts/MtgGPTPromptV9b.txt").read_text(encoding="utf-8").strip()
 
-# ───── 2 · load & compress transcript ──────────────────────────────────────
-raw_lines = Path("data/transcripts/dinnerTranscript.txt").read_text().splitlines()
-
-def compress(lines: list[str]) -> str:
+# ── 2 · Load & compress transcript ─────────────────────────────────────────
+def compress_transcript(raw_lines: list[str]) -> str:
     """
-    Example conversion
-        Speaker 4 [00:07:12] Some text
-        Speaker 2 [00:07:18] More
-        Speaker 4 [00:07:45] Yet more
-        Speaker 5 [00:08:01] New minute!
-
-    becomes
-        4|7 Some text
-        2   More
-        4   Yet more
-        5|8 New minute!
+    Compress: Only show SPEAKER|MINUTE on the first line of each minute.
+    Remaining lines just show SPEAKER.
     """
-    patt = re.compile(r"Speaker\s+(\d+)\s+\[\d{2}:(\d{2}):\d{2}]\s+(.*)")
-    out, last_minute = [], None
+    compressed = []
+    last_minute = None
+    patt = re.compile(r"Speaker\s+(\d+)\s+\[(\d{2}):(\d{2}):\d{2}\]\s+(.*)")
 
-    for ln in lines:
-        m = patt.match(ln)
+    for line in raw_lines:
+        m = patt.match(line)
         if not m:
             continue
-        speaker, mm, txt = m.groups()
+        speaker, mm, ss, text = m.groups()
         minute = int(mm)
         if minute != last_minute:
-            # first line of a new minute → SPEAKER|MINUTE
-            out.append(f"{speaker}|{minute} {txt.strip()}")
+            compressed.append(f"{speaker}|{minute} {text.strip()}")
             last_minute = minute
         else:
-            # subsequent line in the same minute → SPEAKER only
-            out.append(f"{speaker} {txt.strip()}")
+            compressed.append(f"{speaker} {text.strip()}")
 
-    header = "NOTE: first line of each minute has SPEAKER|MINUTE.\n\n"
-    return header + "\n".join(out)
+    header = "NOTE: First line of each minute has SPEAKER|MINUTE.\n\n"
+    return header + "\n".join(compressed)
 
-TRANSCRIPT = compress(raw_lines)
+raw_lines = Path("data/transcripts/dinnerTranscript.txt").read_text(encoding="utf-8").splitlines()
+TRANSCRIPT = compress_transcript(raw_lines)
 
-# ───── 3 · GPT calls ───────────────────────────────────────────────────────
-print("🔸 Calling Stage A …")
-stage_a_text = stage_a(PROMPT_A, TRANSCRIPT)
+# ── 3 · Run Stage A and Stage B ────────────────────────────────────────────
+print("🟡 Running Stage A...")
+a_text = stage_a(PROMPT_A, TRANSCRIPT)
+print("🟢 Stage A complete\n")
 
-print("🔸 Calling Stage B …")
-stage_b_text = stage_b(PROMPT_B, TRANSCRIPT)
+print("🟡 Running Stage B...")
+b_text = stage_b(PROMPT_B, TRANSCRIPT)
+print("🟢 Stage B complete\n")
 
-# ───── 4 · build final HTML ────────────────────────────────────────────────
+# Optional: print to console
+print("\n📄 STAGE A — SUMMARY:\n" + a_text + "\n")
+print("📊 STAGE B — FACT LEDGER:\n" + b_text + "\n")
+
+# Save raw A/B text
+Path("StageA.txt").write_text(a_text, encoding="utf-8")
+Path("StageB.txt").write_text(b_text, encoding="utf-8")
+
+# ── 4 · Lightweight Stage C: A + B in HTML ─────────────────────────────────
 html_body = f"""
-<h2 class='hdr'><span class='ticker'>MEETING</span>
-<span class='rest'>— Summary</span></h2>
+<h2 class='hdr'><span class='ticker'>STAGE A</span> <span class='rest'>— Narrative Summary</span></h2>
+<pre>{a_text.strip()}</pre>
 
-<pre>{stage_a_text.strip()}</pre>
-
-<ul class="lvl1">
-  <li>• <strong>Quick Stats / Metrics</strong>
-    <pre>{stage_b_text.strip()}</pre>
-  </li>
-</ul>
+<h2 class='hdr'><span class='ticker'>STAGE B</span> <span class='rest'>— Fact Ledger</span></h2>
+<pre>{b_text.strip()}</pre>
 """
 
 FINAL_HTML = f"""<!DOCTYPE html>
 <html><head><meta charset='utf-8'>
 <style>
- body {{background:#000;color:#fff;font-family:Arial,sans-serif;line-height:1.5;padding:40px}}
- h2.hdr {{font-size:22px;font-weight:bold;margin:30px 0 10px}}
- h2.hdr .ticker {{font-size:24px;font-weight:bold;color:#fff}}
- h2.hdr .rest   {{font-size:20px;font-weight:normal;color:#fff}}
- pre {{white-space:pre-wrap;font-size:16px}}
- ul.lvl1 > li {{margin:10px 0}}
-</style></head><body>{html_body}</body></html>"""
+  body {{background:#000; color:#fff; font-family:Arial,sans-serif; line-height:1.5; padding:40px}}
+  h2.hdr {{font-size:22px; font-weight:bold; margin:30px 0 10px}}
+  h2.hdr .ticker {{font-size:24px; font-weight:bold; color:#fff}}
+  h2.hdr .rest   {{font-size:20px; font-weight:normal; color:#fff}}
+  pre {{white-space:pre-wrap; font-size:16px}}
+</style></head><body>{html_body}</body></html>
+"""
 
-# ───── 5 · save summary ────────────────────────────────────────────────────
+# ── 5 · Save HTML to disk ─────────────────────────────────────────────────
 out_path = Path(f"data/summaries/InvestmentSummary_{datetime.date.today()}.html")
 out_path.parent.mkdir(parents=True, exist_ok=True)
 out_path.write_text(FINAL_HTML, encoding="utf-8")
-print("✔️  Pipeline complete — saved", out_path)
+print("✅ Pipeline complete — saved to", out_path)
