@@ -26,5 +26,5 @@ Header line (bold):
   separate bullets.  If the second idea depends on the first, indent it one level.
 • Push ALL numbers / % / $ / dates to indented sub-bullets.
 
-Print every company’s section, then:
-=== END STAGE A (type "y" to continue) ===
+Print in chat session every company’s section, then:
+=== END STAGE A ===
