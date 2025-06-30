@@ -25,6 +25,3 @@ Header line (bold):
 • If a bullet contains multiple ideas (joined by “;”, “ and ”, or “ but ”), split into
   separate bullets.  If the second idea depends on the first, indent it one level.
 • Push ALL numbers / % / $ / dates to indented sub-bullets.
-
-After every company’s section, then:
-=== END STAGE A ===
