@@ -12,8 +12,8 @@ from llm_calls import stage_a, stage_b      # now (prompt_part, transcript)
 from formatter import split_and_indent, build_block, build_html
 
 # ─────────────────────────── 1) Load prompt slices ──────────────────────────
-PROMPT_A = Path("prompts/Prompt_V9_A.txt").read_text()
-PROMPT_B = Path("prompts/Prompt_V9_B.txt").read_text()
+PROMPT_A = Path("prompts/MtgGPTPromptV9a.txt").read_text()
+PROMPT_B = Path("prompts/MtgGPTPromptV9b.txt").read_text()
 
 # ─────────────────────────── 2) Load & compress transcript ──────────────────
 RAW_LINES = Path("data/transcripts/dinnerTranscript.txt").read_text().splitlines()
