@@ -4,27 +4,30 @@ from pathlib import Path
 from llm_calls import stage_a, stage_b
 
 # === Load input files ===
-PROMPT = Path("prompts/MtgGPTPromptV9.txt").read_text()
+PROMPT_A = Path("prompts/MtgGPTPromptV9a.txt").read_text()
+PROMPT_B = Path("prompts/MtgGPTPromptV9b.txt").read_text()
+PROMPT_C = Path("prompts/MtgGPTPromptV9c.txt").read_text()  # Not used now, placeholder for future use
+
 TRANSCRIPT_LINES = Path("data/transcripts/dinnerTranscript.txt").read_text().strip().splitlines()
 
 # === Compress transcript to reduce token load ===
 def compress_transcript_lines(lines):
     compressed = []
     for line in lines:
-        match = re.match(r"Speaker\\s+(\\d+)\\s+\\[(\\d{2}):(\\d{2}):(\\d{2})\\]\\s+(.*)", line)
+        match = re.match(r"Speaker\s+(\d+)\s+\[(\d{2}):(\d{2}):(\d{2})\]\s+(.*)", line)
         if match:
             speaker, hh, mm, ss, content = match.groups()
-            minute = str(int(hh))
+            minute = str(int(hh))  # collapse to hour bucket
             compressed.append(f"{speaker}|{minute} {content.strip()}")
         elif line.strip():
             compressed.append(line.strip())
     return compressed
 
-TRANSCRIPT = "NOTE: Each line begins with SPEAKER|MINUTE.\\n" + "\\n".join(compress_transcript_lines(TRANSCRIPT_LINES))
+TRANSCRIPT = "NOTE: Each line begins with SPEAKER|MINUTE.\n" + "\n".join(compress_transcript_lines(TRANSCRIPT_LINES))
 
 # === Run Stages A & B ===
-a_text = stage_a(PROMPT, TRANSCRIPT)
-b_text = stage_b(PROMPT, TRANSCRIPT)
+a_text = stage_a(PROMPT_A, TRANSCRIPT)
+b_text = stage_b(PROMPT_B, TRANSCRIPT)
 
 # === Save A & B for inspection ===
 Path("/mnt/data/StageA.txt").write_text(a_text)
@@ -54,4 +57,4 @@ final_html = f"""<!DOCTYPE html>
 </style></head><body>{c_html}</body></html>"""
 
 Path("/mnt/data/InvestmentSummaryV9.html").write_text(final_html, encoding="utf-8")
-print("[Download summary](sandbox:/mnt/data/InvestmentSummaryV9.html?_chatgptios_conversationID=685aef7e-801c-8000-87bc-8b573a5fd0df&_chatgptios_messageID=347ef221-f730-40fb-9a4c-10cf5328ffa3)")
+print("[Download summary](sandbox:/mnt/data/InvestmentSummaryV9.html?_chatgptios_conversationID=685aef7e-801c-8000-87bc-8b573a5fd0df&_chatgptios_messageID=6edf0737-fb49-4d28-90c5-548aa970b9e1)")
