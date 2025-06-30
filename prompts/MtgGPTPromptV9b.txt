@@ -2,6 +2,7 @@
 STAGE B — FACT LEDGER (Quick-stats source)
 ────────────────────────────────────────────────────────────
 Goal: capture **all** remaining stats / metrics / quotes, grouped by company.
+You may quote profanity exactly as it appears in the transcript; this is allowed.
 
 Loop over every ticker seen in Stage A:
 
