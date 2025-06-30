@@ -1,42 +1,45 @@
-import re
-import datetime
+"""
+run_pipeline.py  –  V9 (3-file prompt) runner
+
+• Compresses transcript to "SPEAKER|MIN" format
+• Runs Stage A and Stage B once on the full transcript
+• Builds dark-mode HTML summary
+"""
+
+import re, datetime
 from pathlib import Path
-from llm_calls import stage_a, stage_b
+from llm_calls import stage_a, stage_b      # now (prompt_part, transcript)
 from formatter import split_and_indent, build_block, build_html
 
-# === Load prompt & transcript ===
-PROMPT = Path("prompts/MtgGPTPromptV9.txt").read_text()
-raw_lines = Path("data/transcripts/dinnerTranscript.txt").read_text().strip().splitlines()
+# ─────────────────────────── 1) Load prompt slices ──────────────────────────
+PROMPT_A = Path("prompts/Prompt_V9_A.txt").read_text()
+PROMPT_B = Path("prompts/Prompt_V9_B.txt").read_text()
 
-# === Compress transcript to reduce token load ===
-def compress_transcript_lines(lines):
-    compressed = []
-    for line in lines:
-        match = re.match(r"Speaker\s+(\d+)\s+\[(\d{2}):\d{2}:\d{2}\]\s+(.*)", line)
-        if match:
-            speaker, minute, content = match.groups()
-            minute = str(int(minute))  # strip leading zeroes
-            compressed.append(f"{speaker}|{minute} {content.strip()}")
-        elif line.strip():
-            compressed.append(line.strip())
-    return compressed
+# ─────────────────────────── 2) Load & compress transcript ──────────────────
+RAW_LINES = Path("data/transcripts/dinnerTranscript.txt").read_text().splitlines()
 
-compressed_lines = compress_transcript_lines(raw_lines)
-TRANSCRIPT = (
-    "NOTE: Each line begins with SPEAKER|MINUTE. Use this to track turns.\n\n"
-    + "\n".join(compressed_lines)
-)
+def compress(lines: list[str]) -> str:
+    out = []
+    for ln in lines:
+        m = re.match(r"Speaker\s+(\d+)\s+\[(\d{2}):\d{2}:\d{2}\]\s+(.*)", ln)
+        if m:
+            speaker, mm, text = m.groups()
+            minute = str(int(mm))            # strip leading zeros
+            out.append(f"{speaker}|{minute} {text.strip()}")
+    return "NOTE: Each line starts SPEAKER|MIN.\n\n" + "\n".join(out)
 
-# === Run Stage A + B together (one-time full sweep) ===
-a_raw = stage_a("MEETING", TRANSCRIPT)
-b_raw = stage_b("MEETING", TRANSCRIPT)
+TRANSCRIPT = compress(RAW_LINES)
 
-# === Merge + format ===
+# ─────────────────────────── 3) Run Stage A & B ─────────────────────────────
+a_raw = stage_a(PROMPT_A, TRANSCRIPT)
+b_raw = stage_b(PROMPT_B, TRANSCRIPT)
+
+# ─────────────────────────── 4) Build HTML block ────────────────────────────
 blocks = [build_block("MEETING", split_and_indent(a_raw), b_raw)]
-html = build_html(blocks)
+html   = build_html(blocks)
 
-# === Output final summary ===
+# ─────────────────────────── 5) Save summary ────────────────────────────────
 out = Path(f"data/summaries/InvestmentSummary_{datetime.date.today()}.html")
 out.parent.mkdir(parents=True, exist_ok=True)
 out.write_text(html, encoding="utf-8")
-print("✔ saved", out)
+print("✔  saved", out)
