@@ -3,6 +3,11 @@ import re
 from pathlib import Path
 from llm_calls import stage_a, stage_b
 
+print("=== DEBUG PROMPT_A first two lines ===")
+print(Path("prompts/MtgGPTPromptV9a.txt").read_text().splitlines()[:2])
+print("=== DEBUG PROMPT_B first two lines ===")
+print(Path("prompts/MtgGPTPromptV9b.txt").read_text().splitlines()[:2])
+
 # ── 1. Load prompt files ────────────────────────────────────────────────────
 PROMPT_A = Path("prompts/MtgGPTPromptV9a.txt").read_text()
 PROMPT_B = Path("prompts/MtgGPTPromptV9b.txt").read_text()
