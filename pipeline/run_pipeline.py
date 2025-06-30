@@ -34,6 +34,8 @@ def compress(lines: list[str]) -> str:
 
 TRANSCRIPT = compress(raw_lines)
 
+print("PROMPT_A preview →", PROMPT_A.splitlines()[0:3])
+print("TRANSCRIPT preview →", TRANSCRIPT.splitlines()[0:3])
 # ── 3)  Run Stage A and Stage B once each ─────────────────────────────────
 a_text = stage_a(PROMPT_A, TRANSCRIPT)
 b_text = stage_b(PROMPT_B, TRANSCRIPT)
