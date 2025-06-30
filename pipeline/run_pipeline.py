@@ -25,6 +25,12 @@ def compress(lines):
 
 TRANSCRIPT = "NOTE: Each line begins with SPEAKER|MINUTE.\n" + "\n".join(compress(transcript_lines))
 
+print("—CI sanity check—  first 3 lines of V9a:")
+print(Path("prompts/MtgGPTPromptV9a.txt").read_text().splitlines()[:3])
+
+print("—CI sanity check—  first 2 lines of V9b:")
+print(Path("prompts/MtgGPTPromptV9b.txt").read_text().splitlines()[:2])
+
 # ── 3. Run Stage A and B exactly once each ─────────────────────────────────
 a_text = stage_a(PROMPT_A, TRANSCRIPT)
 b_text = stage_b(PROMPT_B, TRANSCRIPT)
