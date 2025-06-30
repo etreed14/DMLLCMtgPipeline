@@ -57,13 +57,12 @@ def _ask(system_prompt: str, user_content: str) -> str:
     _record(in_tok + len(out) // 4)
     return out
 # ────────────────────────  Public API  ───────────────────────────
-def stage_a(prompt_A: str, transcript: str) -> str:
-    """Return Stage A narrative for this transcript chunk."""
-    return _ask(f"{prompt_A}\n\n{transcript}")
+def stage_a(prompt: str, transcript: str) -> str:
+    # prompt → system role, transcript → user role
+    return _ask(prompt, transcript)
 
-def stage_b(prompt_B: str, transcript: str) -> str:
-    """Return Stage B fact ledger for this transcript chunk."""
-    return _ask(f"{prompt_B}\n\n{transcript}")
+def stage_b(prompt: str, transcript: str) -> str:
+    return _ask(prompt, transcript)
 
 def stage_c(prompt_C: str, assembled_html: str) -> str:
     """
