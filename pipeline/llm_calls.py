@@ -17,9 +17,9 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 MODEL = "gpt-4o"           # change here if you need a different model
 
 # ──────────────────────  Load prompt slices  ─────────────────────
-PROMPT_A = Path("prompts/Prompt_V9_A.txt").read_text()
-PROMPT_B = Path("prompts/Prompt_V9_B.txt").read_text()
-PROMPT_C = Path("prompts/Prompt_V9_C.txt").read_text()   # only if you need it
+PROMPT_A = Path("prompts/MtgGPTPromptV9a.txt").read_text()
+PROMPT_B = Path("prompts/MtgGPTPromptV9b.txt").read_text()
+PROMPT_C = Path("prompts/MtgGPTPromptV9c.txt").read_text()   # only if you need it
 
 # ───────────────  Simple rolling TPM rate-limit guard  ───────────
 _WINDOW_START, _TOKENS_USED = time.time(), 0
