@@ -1,0 +1,16 @@
+────────────────────────────────────────────────────────────
+STAGE C — BUILD FINAL OUTPUT (clean + append stats)
+────────────────────────────────────────────────────────────
+For each company **in the same order as Stage A**:
+
+1. **Final A cleanup**  
+   • Re-scan every Stage A bullet you produced.  
+   • If a bullet still contains multiple ideas joined by “;”, “ and ”, or “ but ”:  
+     – Split at that join-word.  
+     – Keep the first idea as the parent bullet.  
+     – Indent the remaining idea(s) exactly one level deeper.  
+   • _Do not reorder, merge, or delete any content._ Only split & indent.
+
+2. **Print the Stage A header and its cleaned bullet tree.**
+
+3. **Append Quick-Stats / Metrics**  
