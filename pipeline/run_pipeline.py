@@ -43,7 +43,7 @@ def stage_c_concat(stage_a_text: str, stage_b_text: str) -> str:
 # === Build HTML output ===
 c_html = stage_c_concat(a_text, b_text)
 
-final_html = f\"\"\"<!DOCTYPE html>
+final_html = f"""<!DOCTYPE html>
 <html><head><meta charset='utf-8'>
 <style>
   body {{ background:#000; color:#fff; font-family:Arial,sans-serif; line-height:1.5; padding:40px; }}
@@ -51,7 +51,7 @@ final_html = f\"\"\"<!DOCTYPE html>
   h2.hdr .ticker {{ font-weight:bold; font-size:24px; color:#ffffff; }}
   h2.hdr .rest {{ font-weight:normal; font-size:20px; color:#ffffff; }}
   pre {{ white-space:pre-wrap; font-size:16px; }}
-</style></head><body>{c_html}</body></html>\"\"\"
+</style></head><body>{c_html}</body></html>"""
 
 Path("/mnt/data/InvestmentSummaryV9.html").write_text(final_html, encoding="utf-8")
 print("[Download summary](sandbox:/mnt/data/InvestmentSummaryV9.html?_chatgptios_conversationID=685aef7e-801c-8000-87bc-8b573a5fd0df&_chatgptios_messageID=347ef221-f730-40fb-9a4c-10cf5328ffa3)")
