@@ -1,0 +1,15 @@
+────────────────────────────────────────────────────────────
+STAGE B — FACT LEDGER (Quick-stats source)
+────────────────────────────────────────────────────────────
+Goal: capture **all** remaining stats / metrics / quotes, grouped by company.
+
+Loop over every ticker seen in Stage A:
+
+  (TICKER) — Facts
+  ──────────────────────
+  • Create whatever buckets are needed (Financial, Edge/Tech, AI Use Cases, …).
+  • Unlimited nesting — NOTHING is dropped.
+  • Do *not* rewrite or merge with Stage A.
+
+After the final company:
+=== END STAGE B (type "y" to append stats) ===
