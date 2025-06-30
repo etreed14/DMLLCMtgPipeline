@@ -32,13 +32,13 @@ Path("/mnt/data/StageB.txt").write_text(b_text)
 
 # === Simple Stage C logic (inline) ===
 def stage_c_concat(stage_a_text: str, stage_b_text: str) -> str:
-    return f\"\"\"
+    return f"""
 <h2 class='hdr'><span class='ticker'>STAGE A</span> <span class='rest'>— Narrative Summary</span></h2>
 <pre>{stage_a_text.strip()}</pre>
 
 <h2 class='hdr'><span class='ticker'>STAGE B</span> <span class='rest'>— Fact Ledger</span></h2>
 <pre>{stage_b_text.strip()}</pre>
-\"\"\"
+"""
 
 # === Build HTML output ===
 c_html = stage_c_concat(a_text, b_text)
