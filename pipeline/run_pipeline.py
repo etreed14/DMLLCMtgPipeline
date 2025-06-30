@@ -32,7 +32,7 @@ Path("/mnt/data/StageA.txt").write_text(a_text)
 Path("/mnt/data/StageB.txt").write_text(b_text)
 
 # === Run Stage C ===
-c_html = stage_c_concat(a_text, b_text)
+c_html = MtgGPTPromptV9c(a_text, b_text)
 
 # === Wrap in dark mode HTML ===
 final_html = f"""<!DOCTYPE html>
