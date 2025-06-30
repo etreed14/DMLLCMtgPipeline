@@ -12,4 +12,4 @@ Loop over every ticker seen in Stage A:
   • Do *not* rewrite or merge with Stage A.
 
 After the final company:
-=== END STAGE B (type "y" to append stats) ===
+=== END STAGE B ===
