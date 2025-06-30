@@ -1,31 +1,46 @@
-import os, openai, time
+"""
+llm_calls.py  –  V9 helper (3-file prompt version)
 
+• Loads Prompt_V9_A / Prompt_V9_B / Prompt_V9_C once at import time
+• Exposes:
+      stage_a(prompt_A, transcript)
+      stage_b(prompt_B, transcript)
+      stage_c(prompt_C, assembled_html)   # optional
+• Guards against 30 000-token-per-minute bursts.
+"""
+
+import os, time, openai
+from pathlib import Path
+
+# ───────────────────────────  OpenAI  ────────────────────────────
 openai.api_key = os.getenv("OPENAI_API_KEY")
-MODEL = "gpt-4o"
+MODEL = "gpt-4o"           # change here if you need a different model
 
-_WINDOW_START = time.time()
-_TOKENS_USED = 0
+# ──────────────────────  Load prompt slices  ─────────────────────
+PROMPT_A = Path("prompts/Prompt_V9_A.txt").read_text()
+PROMPT_B = Path("prompts/Prompt_V9_B.txt").read_text()
+PROMPT_C = Path("prompts/Prompt_V9_C.txt").read_text()   # only if you need it
 
+# ───────────────  Simple rolling TPM rate-limit guard  ───────────
+_WINDOW_START, _TOKENS_USED = time.time(), 0
 def _maybe_pause(tokens_needed: int):
     global _WINDOW_START, _TOKENS_USED
     elapsed = time.time() - _WINDOW_START
     if elapsed > 60:
-        _WINDOW_START = time.time()
-        _TOKENS_USED = 0
-    if _TOKENS_USED + tokens_needed > 29000:
-        wait_time = 60 - elapsed
-        print(f"⏳ Waiting {wait_time:.1f}s to avoid token rate-limit...")
-        time.sleep(wait_time)
-        _WINDOW_START = time.time()
-        _TOKENS_USED = 0
-
-def _record_tokens(n: int):
+        _WINDOW_START, _TOKENS_USED = time.time(), 0
+    if _TOKENS_USED + tokens_needed > 29_000:
+        wait = 60 - elapsed
+        print(f"⏳ Waiting {wait:.1f}s to respect 30 k tokens/minute…")
+        time.sleep(wait)
+        _WINDOW_START, _TOKENS_USED = time.time(), 0
+def _record(n: int):
     global _TOKENS_USED
     _TOKENS_USED += n
 
+# ─────────────────────  Core call helper  ────────────────────────
 def _ask(msg: str) -> str:
-    approx_in = len(msg) // 4
-    _maybe_pause(approx_in)
+    in_tok = len(msg) // 4
+    _maybe_pause(in_tok)
     rsp = openai.chat.completions.create(
         model=MODEL,
         messages=[
@@ -35,48 +50,21 @@ def _ask(msg: str) -> str:
         temperature=0.3,
     )
     out = rsp.choices[0].message.content.strip()
-    approx_out = len(out) // 4
-    _record_tokens(approx_in + approx_out)
+    _record(in_tok + len(out) // 4)
     return out
 
-# ——————————————————————————————————————————————
-# Embedded prompt logic for V9 format: no external .txt
-# ——————————————————————————————————————————————
+# ────────────────────────  Public API  ───────────────────────────
+def stage_a(prompt_A: str, transcript: str) -> str:
+    """Return Stage A narrative for this transcript chunk."""
+    return _ask(f"{prompt_A}\n\n{transcript}")
 
-_STAGE_A_PROMPT = """Craft a fluent, investor-style pitch for **each company**.
+def stage_b(prompt_B: str, transcript: str) -> str:
+    """Return Stage B fact ledger for this transcript chunk."""
+    return _ask(f"{prompt_B}\n\n{transcript}")
 
-Header line (bold):
-  **(TICKER) — Long / Short — mm/dd/yyyy — $price**
-
-• Keep adding primary bullets until every material idea is voiced
-  (edge, catalysts, valuation math, debate, risks, etc).  
-• One idea per bullet — natural prose.
-• If a bullet contains multiple ideas (joined by ";", " and ", or " but"), split it.
-  If the second idea depends on the first, indent it one level deeper.
-• Push all numbers / % / $ / dates to indented sub-bullets.
-• Keep your tone punchy but professional.
-"""
-
-_STAGE_B_PROMPT = """Build an exhaustive fact ledger for **each company**.
-
-Company block header:
-  (TICKER) — Facts
-  ──────────────────────
-
-• Create whatever buckets are needed (Financial, Edge/Tech, AI Use Cases, etc.)
-• Unlimited nesting: bullets → subpoenas → sub-sub-bullets
-• Do NOT drop any details — include every stat, quote, metric, or claim.
-• Do not merge with Stage A — treat this as a parallel ledger of all unused data.
-"""
-
-# ——————————————————————————————————————————————
-# Stage A / B with embedded prompts
-# ——————————————————————————————————————————————
-
-def stage_a(ticker: str, transcript: str) -> str:
-    msg = f"{_STAGE_A_PROMPT}\n\nOnly produce **Stage A** for {ticker}.\n\n{transcript}"
-    return _ask(msg)
-
-def stage_b(ticker: str, transcript: str) -> str:
-    msg = f"{_STAGE_B_PROMPT}\n\nOnly produce **Stage B** for {ticker}.\n\n{transcript}"
-    return _ask(msg)
+def stage_c(prompt_C: str, assembled_html: str) -> str:
+    """
+    (Optional) If you ever want GPT to wrap/finish the HTML, call this.
+    The current pipeline builds HTML locally, so you may not need it.
+    """
+    return _ask(f"{prompt_C}\n\n{assembled_html}")
