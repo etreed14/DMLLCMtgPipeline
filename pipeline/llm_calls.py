@@ -1,7 +1,7 @@
 """
 llm_calls.py  –  V9 helper (3-file prompt version)
 
-• Loads Prompt_V9_A / Prompt_V9_B / Prompt_V9_C once at import time
+• Loads PromptV9a / PromptV9b / PromptV9c once at import time
 • Exposes:
       stage_a(prompt_A, transcript)
       stage_b(prompt_B, transcript)
@@ -38,21 +38,24 @@ def _record(n: int):
     _TOKENS_USED += n
 
 # ─────────────────────  Core call helper  ────────────────────────
-def _ask(msg: str) -> str:
-    in_tok = len(msg) // 4
+def _ask(system_prompt: str, user_content: str) -> str:
+    """Low-level wrapper around the Chat Completions API."""
+    in_tok = len(system_prompt) // 4 + len(user_content) // 4
     _maybe_pause(in_tok)
+
     rsp = openai.chat.completions.create(
         model=MODEL,
         messages=[
-            {"role": "system", "content": "You are MtgGPT."},
-            {"role": "user",   "content": msg}
+            # put ALL instructions here
+            {"role": "system", "content": system_prompt},
+            # put ONLY the transcript (or question) here
+            {"role": "user",   "content": user_content},
         ],
         temperature=0.3,
     )
     out = rsp.choices[0].message.content.strip()
     _record(in_tok + len(out) // 4)
     return out
-
 # ────────────────────────  Public API  ───────────────────────────
 def stage_a(prompt_A: str, transcript: str) -> str:
     """Return Stage A narrative for this transcript chunk."""
