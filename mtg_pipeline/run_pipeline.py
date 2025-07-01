@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 import sys
 from .stages import run_stage
 
@@ -7,23 +8,24 @@ PROMPTS_DIR = Path('prompts')
 def read_transcript(path: Path) -> str:
     return path.read_text(encoding='utf-8')
 
+_TS_RE = re.compile(r"^(?P<speaker>[^\[]+) \[(?P<h>\d+):(?P<m>\d\d):(?P<s>\d\d)\] (?P<text>.+)")
+
 def compress(lines: list[str]) -> str:
-    out = []
-    last_min = None
+    """Compress transcript lines, skipping malformed rows."""
+    out: list[str] = []
+    last_min: int | None = None
     for ln in lines:
-        if not ln.strip():
+        m = _TS_RE.match(ln.strip())
+        if not m:
             continue
-        parts = ln.split(maxsplit=3)
-        if len(parts) < 4:
-            continue
-        speaker, timecode, _, text = parts
-        mm = timecode[1:3]
-        minute = int(mm)
+        speaker = m.group("speaker").strip()
+        minute = int(m.group("h")) * 60 + int(m.group("m"))
+        text = m.group("text").strip()
         if minute != last_min:
-            out.append(f"{speaker}|{minute} {text.strip()}")
+            out.append(f"{speaker}|{minute} {text}")
             last_min = minute
         else:
-            out.append(f"{speaker} {text.strip()}")
+            out.append(f"{speaker} {text}")
     header = "NOTE: First line of each minute has SPEAKER|MINUTE.\n\n"
     return header + "\n".join(out)
 
