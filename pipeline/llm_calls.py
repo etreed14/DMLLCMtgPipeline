@@ -4,6 +4,7 @@ llm_calls.py  ·  V9 helper (prompt slices)
 Exposes:
     stage_a(prompt_slice, transcript)
     stage_b(prompt_slice, transcript)
+    stage_c(prompt_slice, stage_a_text, stage_b_text)
 
 Handles:
     • 30 000-TPM rolling window guard
@@ -74,3 +75,8 @@ def stage_a(prompt_slice: str, transcript: str) -> str:
 def stage_b(prompt_slice: str, transcript: str) -> str:
     """Return Stage B fact ledger using the prompt slice supplied."""
     return _ask(prompt_slice, transcript)
+
+def stage_c(prompt_slice: str, stage_a_text: str, stage_b_text: str) -> str:
+    """Return Stage C HTML using the prompt slice supplied."""
+    user = f"STAGE_A:\n{stage_a_text.strip()}\n\nSTAGE_B:\n{stage_b_text.strip()}"
+    return _ask(prompt_slice, user)
