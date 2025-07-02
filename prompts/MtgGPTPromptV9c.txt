@@ -1,22 +1,30 @@
+##### MtgGPTPrompt v9  (clean A + Quick Stats B) #####
+IGNORE ALL EARLIER CHATS.  THIS FILE IS YOUR ONLY INSTRUCTION SET.
+
 ────────────────────────────────────────────────────────────
-STAGE C — BUILD FINAL OUTPUT (clean + append stats)
+STAGE C — BUILD FINAL OUTPUT
 ────────────────────────────────────────────────────────────
-For each company **in the same order as Stage A**:
+For each company, in the same order as Stage A:
 
-1. **Final A cleanup**  
-   • Re-scan every Stage A bullet you produced.  
-   • If a bullet still contains multiple ideas joined by “;”, “ and ”, or “ but ”:  
-     – Split at that join-word.  
-     – Keep the first idea as the parent bullet.  
-     – Indent the remaining idea(s) exactly one level deeper.  
-   • _Do not reorder, merge, or delete any content._ Only split & indent.
+1. **Stage A cleanup — split only**
+   • Re-scan each Stage A bullet.  
+   • If a bullet still combines ideas joined by “;”, “ and ”, or “ but”, split there.  
+   • First idea stays as the parent bullet; remaining idea(s) are indented **one** level.  
+   • Do *not* delete, reorder, rewrite, or merge anything.
 
-2. Finalize:
-def stage_c_concat(stage_a_text: str, stage_b_text: str) -> str:
-    return f"""
-<h2 class='hdr'><span class='ticker'>STAGE A</span> <span class='rest'>— Narrative Summary</span></h2>
-<pre>{stage_a_text.strip()}</pre>
+2. **Start with the Stage A header & cleaned tree**  
+(TICKER) — Long / Short — mm/dd/yyyy — $[Pull historical close price from Finance tool on conversation date]  
+Next Earnings Date – [Fetch from https://nextearningsdate.com/{ticker}.html]  
+• …cleaned bullets from Step 1…
 
-<h2 class='hdr'><span class='ticker'>STAGE B</span> <span class='rest'>— Fact Ledger</span></h2>
-<pre>{stage_b_text.strip()}</pre>
-"""
+3. **Immediately follow by printing the Stage B block first titled 'TICKER - Quick Stats'**  
+
+4. Repeat for the next company.
+
+After the last company:
+
+• DO NOT attempt to save to a file.  
+• DO NOT output any download link.  
+• Simply print the full combined result as plain text output.
+
+STOP after printing the full result.
