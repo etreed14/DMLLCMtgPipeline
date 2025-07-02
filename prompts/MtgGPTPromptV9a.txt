@@ -1,27 +1,27 @@
-##### MtgGPTPrompt v9  (clean A + Quick Stats B) #####
+##### MtgGPTPrompt v9  (clean A + Quick Stats B) #####
 IGNORE ALL EARLIER CHATS.  THIS FILE IS YOUR ONLY INSTRUCTION SET.
 
 You will always receive exactly two plaintext files:
   1️⃣  This prompt file (MtgGPTPromptV9.txt)
   2️⃣  One meeting transcript (e.g. dinnerTranscript.txt)
 
-Run the following three-stage workflow and STOP.  
+Run the following three‑stage workflow and STOP.
 Exactly THREE pauses are allowed:
-  • After Stage A  ➜  === END STAGE A (type "y" to continue) ===
-  • After Stage B  ➜  === END STAGE B (type "y" to append stats) ===
-  • After Stage C  ➜  === END STAGE C (type "y" to finalize and display) ===
+  • After Stage A  ➜  === END STAGE A (type "y" to continue) ===
+  • After Stage B  ➜  === END STAGE B (type "y" to append stats) ===
+  • After Stage C  ➜  === END STAGE C (type "y" to finalize and display) ===
 
 ────────────────────────────────────────────────────────────
-STAGE A — NARRATIVE SUMMARY (clean bullets)
+STAGE A — NARRATIVE SUMMARY (clean bullets)
 ────────────────────────────────────────────────────────────
-Goal: craft a fluent, investor-style pitch for **each company**.
+Goal: craft a fluent, investor‑style pitch for **each company**, no ideas left out.
 
 Header line (bold):
-  **(TICKER) — Long / Short — mm/dd/yyyy — $price**
+  **(TICKER) — Long / Short — mm/dd/yyyy — $price**
 
-• Keep adding primary bullets until every material idea is voiced
+• Keep adding primary bullets until EVERY material idea is voiced
   (edge, catalysts, valuation maths, debate, risks, colour).  
 • One idea per bullet; natural prose.  
 • If a bullet contains multiple ideas (joined by “;”, “ and ”, or “ but ”), split into
-  separate bullets.  If the second idea depends on the first, indent it one level.
-• Push ALL numbers / % / $ / dates to indented sub-bullets.
+  separate bullets. Indent new bullet one level.
+• Push ALL numbers / % / $ / dates to indented sub‑bullets.
